@@ -3,10 +3,6 @@ use std::collections::HashMap;
 
 pub mod http;
 
-pub fn hello() {
-    println!("hello mixin");
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 struct Mixin {
     build: String,
@@ -16,14 +12,11 @@ struct Mixin {
     #[serde(default)]
     #[serde(flatten)]
     _unknow_fields_: Option<HashMap<String, toml::Value>>,
-    //timestamp: String,
+    // timestamp: String,
 }
 
 pub fn root() {
-    let res = http::client("")
-        .get("https://mixin-api.zeromesh.net/")
-        .send()
-        .unwrap();
+    let res = http::request(reqwest::Method::GET, "", "");
 
     #[derive(Debug, Serialize, Deserialize)]
     struct Body {

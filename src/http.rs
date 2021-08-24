@@ -1,4 +1,4 @@
-use reqwest::{blocking::Client, header};
+use reqwest::{blocking::Response, header, Method};
 use serde::{Deserialize, Serialize};
 use std::time::Duration;
 
@@ -11,7 +11,7 @@ pub struct Error {
     extra: String,
 }
 
-pub fn client(token: &str) -> Client {
+pub fn request(method: Method, path: &str, token: &str) -> Response {
     let mut headers = header::HeaderMap::new();
     headers.insert("Content-Type", "application/json".parse().unwrap());
     headers.insert(
@@ -19,11 +19,12 @@ pub fn client(token: &str) -> Client {
         format!("Bearer {}", token).parse().unwrap(),
     );
 
-    // let mut full = format!("https://mixin-api.zeromesh.net/{}", path).to_string();
-    //reqwest::ClientBuilder::new()
-    reqwest::blocking::Client::builder()
+    let client = reqwest::blocking::Client::builder()
         .default_headers(headers)
         .timeout(Duration::from_secs(10))
         .build()
-        .expect("Client::build()")
+        .expect("Client::build()");
+
+    let uri = format!("https://mixin-api.zeromesh.net/{}", path).to_string();
+    client.request(method, uri).send().unwrap()
 }
