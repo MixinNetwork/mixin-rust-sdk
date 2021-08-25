@@ -1,7 +1,17 @@
-use std::time::{Duration, SystemTime};
+mod secret;
 
 fn main() {
-    let expired = SystemTime::now() + Duration::new(60 * 60 * 24 * 30 * 6, 0);
-    println!("expired {:?}", expired);
     //bot_api_rust_client::root();
+    println!(
+        "token {}",
+        bot_api_rust_client::authorization::sign_authorization_token(
+            secret::APP_ID,
+            secret::SESSION_ID,
+            secret::PRIVATE_KEY,
+            "GET",
+            "/me",
+            "",
+        )
+        .unwrap()
+    )
 }
