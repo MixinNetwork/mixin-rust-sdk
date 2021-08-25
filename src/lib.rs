@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+pub mod authorization;
 pub mod http;
 
 #[derive(Debug, Serialize, Deserialize)]
