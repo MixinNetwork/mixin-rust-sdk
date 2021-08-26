@@ -1,4 +1,5 @@
 mod secret;
+use std::time::SystemTime;
 
 fn generate_authorization_token() -> String {
     bot_api_rust_client::authorization::sign_token(
@@ -15,11 +16,17 @@ fn generate_authorization_token() -> String {
 fn main() {
     //bot_api_rust_client::root();
     //println!("token {}", generate_authorization_token())
-    bot_api_rust_client::pin::encrypt(
-        "",
-        "bvDhJuoHZfAU4UjMwKHkqUVxf0n_-nwM2YCQf9hOYAA",
-        "",
-        "QyyX3LAsCvW75c5L-N6eSmH-WsUhIN47nr0t5Libcy4",
-        0,
+    println!(
+        "{}",
+        bot_api_rust_client::pin::encrypt(
+            secret::PIN,
+            SystemTime::now()
+                .duration_since(SystemTime::UNIX_EPOCH)
+                .unwrap()
+                .as_secs(),
+            secret::PIN_TOKEN,
+            secret::PRIVATE_KEY,
+        )
+        .unwrap()
     );
 }

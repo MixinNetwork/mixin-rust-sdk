@@ -8,15 +8,14 @@ use std::error;
 use std::time::SystemTime;
 use x25519_dalek;
 
-type AesCbc = Cbc<Aes256, Pkcs7>;
+type Aes256Cbc = Cbc<Aes256, Pkcs7>;
 
 pub fn encrypt(
     pin: &str,
-    pin_token_base64: &str,
-    sid: &str,
-    private_base64: &str,
     iterator: u64,
-) -> Result<String, Box<error::Error>> {
+    pin_token_base64: &str,
+    private_base64: &str,
+) -> Result<String, Box<dyn error::Error>> {
     let private_bytes = base64::decode_config(private_base64, base64::URL_SAFE_NO_PAD)?;
     let public_bytes = base64::decode_config(pin_token_base64, base64::URL_SAFE_NO_PAD)?;
 
@@ -43,10 +42,20 @@ pub fn encrypt(
     let mut padding_buf: Vec<u8> = [padding as u8].repeat(padding);
     pin_buf.append(&mut padding_buf);
 
-    let mut iv = [0u8, BLOCK_SIZE];
-    thread_rng().fill(&mut arr[..]);
+    let mut iv = [0u8; BLOCK_SIZE];
+    thread_rng().fill(&mut iv[..]);
 
-    Ok(String::from(""))
+    let cipher = Aes256Cbc::new_from_slices(&shared_key, &iv).unwrap();
+    let mut ciphertext = cipher.encrypt_vec(&mut pin_buf);
+
+    let mut encrypted_pin_buf: Vec<u8> = vec![];
+    encrypted_pin_buf.extend_from_slice(&iv);
+    encrypted_pin_buf.append(&mut ciphertext);
+
+    Ok(base64::encode_config(
+        encrypted_pin_buf,
+        base64::URL_SAFE_NO_PAD,
+    ))
 }
 
 fn curve25519(input: &[u8]) -> [u8; 32] {
