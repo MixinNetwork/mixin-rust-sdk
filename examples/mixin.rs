@@ -3,7 +3,7 @@ use bot_api_rust_client::authorization;
 use std::time::SystemTime;
 
 fn generate_authorization_token() -> String {
-    let app: authorization::AppConfig = authorization::AppConfig {
+    let cfg: authorization::AppConfig = authorization::AppConfig {
         uid: secret::APP_ID.to_string(),
         sid: secret::SESSION_ID.to_string(),
         private_base64: secret::PRIVATE_KEY.to_string(),
@@ -11,11 +11,11 @@ fn generate_authorization_token() -> String {
         uri: "/me".to_string(),
         body: "".to_string(),
     };
-    bot_api_rust_client::authorization::sign_token(app).unwrap()
+    bot_api_rust_client::authorization::sign_token(cfg).unwrap()
 }
 
 fn me() {
-    let app: authorization::AppConfig = authorization::AppConfig {
+    let cfg: authorization::AppConfig = authorization::AppConfig {
         uid: secret::APP_ID.to_string(),
         sid: secret::SESSION_ID.to_string(),
         private_base64: secret::PRIVATE_KEY.to_string(),
@@ -23,7 +23,7 @@ fn me() {
         uri: "/me".to_string(),
         body: "".to_string(),
     };
-    let user = bot_api_rust_client::user::me(app).unwrap();
+    let user = bot_api_rust_client::user::me(cfg).unwrap();
     println!("{:?}", user);
 }
 
