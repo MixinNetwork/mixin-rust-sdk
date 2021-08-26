@@ -5,16 +5,21 @@ use std::{error, fmt, time::Duration};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Error {
-    status: u32,
-    code: u32,
-    description: String,
+    pub status: u32,
+    pub code: u32,
+    pub description: String,
+
     #[serde(default)]
-    extra: String,
+    pub extra: String,
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "SuperError is here!")
+        write!(
+            f,
+            "status: {}, code: {}, description: {}, extra: {}",
+            self.status, self.code, self.description, self.extra
+        )
     }
 }
 
