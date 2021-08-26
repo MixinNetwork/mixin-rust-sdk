@@ -13,23 +13,25 @@ struct MyAdditionalData {
     scp: String,
 }
 
-pub fn sign_token(
-    uid: &str,
-    sid: &str,
-    private_base64: &str,
-    method: &str,
-    uri: &str,
-    body: &str,
-) -> Result<String, Box<dyn error::Error>> {
+pub struct AppConfig {
+    pub uid: String,
+    pub sid: String,
+    pub private_base64: String,
+    pub method: String,
+    pub uri: String,
+    pub body: String,
+}
+
+pub fn sign_token(cfg: AppConfig) -> Result<String, Box<dyn error::Error>> {
     let mut hasher = Sha256::new();
-    hasher.update(format!("{}{}{}", method, uri, body).as_bytes());
+    hasher.update(format!("{}{}{}", cfg.method, cfg.uri, cfg.body).as_bytes());
     let result = hasher.finalize();
 
-    let private_data = base64::decode_config(private_base64, base64::URL_SAFE_NO_PAD)?;
+    let private_data = base64::decode_config(cfg.private_base64, base64::URL_SAFE_NO_PAD)?;
 
     let payload = MyAdditionalData {
-        uid: uid.to_string(),
-        sid: sid.to_string(),
+        uid: cfg.uid.to_string(),
+        sid: cfg.sid.to_string(),
         jti: Uuid::new_v4().to_string(),
         sig: format!("{:x}", result),
         scp: "FULL".to_owned(),

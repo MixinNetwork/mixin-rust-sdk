@@ -4,6 +4,7 @@ use std::collections::HashMap;
 pub mod authorization;
 pub mod http;
 pub mod pin;
+pub mod user;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Mixin {
@@ -18,7 +19,7 @@ struct Mixin {
 }
 
 pub fn root() {
-    let res = http::request(reqwest::Method::GET, "", "");
+    let res = http::request_with_token(reqwest::Method::GET, "/", "");
 
     #[derive(Debug, Serialize, Deserialize)]
     struct Body {
