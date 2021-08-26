@@ -23,7 +23,8 @@ pub struct User {
 }
 
 pub fn me(cfg: authorization::AppConfig) -> Result<User, Box<dyn error::Error>> {
-    let res = http::request(cfg, reqwest::Method::GET, "/me")?;
+    let map: HashMap<String, String> = HashMap::new();
+    let res = http::request(cfg, reqwest::Method::GET, "/me", &map)?;
 
     #[derive(Debug, Serialize, Deserialize)]
     struct Body {

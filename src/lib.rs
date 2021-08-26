@@ -19,7 +19,8 @@ struct Mixin {
 }
 
 pub fn root() {
-    let res = http::request_with_token(reqwest::Method::GET, "/", "");
+    let map: HashMap<String, String> = HashMap::new();
+    let res = http::request_with_token(reqwest::Method::GET, "/", &map, "");
 
     #[derive(Debug, Serialize, Deserialize)]
     struct Body {

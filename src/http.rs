@@ -25,17 +25,27 @@ impl fmt::Display for Error {
 
 impl error::Error for Error {}
 
-pub fn request(
-    cfg: authorization::AppConfig,
+pub fn request<T: Serialize + ?Sized>(
+    mut cfg: authorization::AppConfig,
     method: Method,
     path: &str,
+    json: &T,
 ) -> Result<Response, Box<dyn error::Error>> {
+    if cfg.method == "POST" {
+        let j = serde_json::to_string(&json)?;
+        cfg.body = j.clone();
+    }
     let token = authorization::sign_token(cfg)?;
 
-    Ok(request_with_token(method, path, &token))
+    Ok(request_with_token(method, path, json, &token))
 }
 
-pub fn request_with_token(method: Method, path: &str, token: &str) -> Response {
+pub fn request_with_token<T: Serialize + ?Sized>(
+    method: Method,
+    path: &str,
+    json: &T,
+    token: &str,
+) -> Response {
     let mut headers = header::HeaderMap::new();
     headers.insert("Content-Type", "application/json".parse().unwrap());
     headers.insert(
@@ -50,5 +60,9 @@ pub fn request_with_token(method: Method, path: &str, token: &str) -> Response {
         .expect("Client::build()");
 
     let uri = format!("https://mixin-api.zeromesh.net{}", path).to_string();
-    client.request(method, uri).send().unwrap()
+    if method == Method::GET {
+        return client.request(method, uri).send().unwrap();
+    }
+
+    client.request(method, uri).json(json).send().unwrap()
 }
