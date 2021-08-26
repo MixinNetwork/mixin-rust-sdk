@@ -13,10 +13,10 @@ struct MyAdditionalData {
     scp: String,
 }
 
-pub fn sign_authorization_token(
+pub fn sign_token(
     uid: &str,
     sid: &str,
-    private: &str,
+    private_base64: &str,
     method: &str,
     uri: &str,
     body: &str,
@@ -25,7 +25,7 @@ pub fn sign_authorization_token(
     hasher.update(format!("{}{}{}", method, uri, body).as_bytes());
     let result = hasher.finalize();
 
-    let private_data = base64::decode_config(private, base64::URL_SAFE_NO_PAD)?;
+    let private_data = base64::decode_config(private_base64, base64::URL_SAFE_NO_PAD)?;
 
     let payload = MyAdditionalData {
         uid: uid.to_string(),

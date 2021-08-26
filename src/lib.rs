@@ -3,6 +3,7 @@ use std::collections::HashMap;
 
 pub mod authorization;
 pub mod http;
+pub mod pin;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct Mixin {
