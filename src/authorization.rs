@@ -20,6 +20,8 @@ pub struct AppConfig {
     pub method: String,
     pub uri: String,
     pub body: String,
+    pub pin: String,
+    pub pin_token_base64: String,
 }
 
 pub fn sign_token(cfg: AppConfig) -> Result<String, Box<dyn error::Error>> {

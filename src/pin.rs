@@ -1,5 +1,5 @@
 use aes::{Aes256, BLOCK_SIZE};
-use block_modes::block_padding::Pkcs7;
+use block_modes::block_padding;
 use block_modes::{BlockMode, Cbc};
 use byteorder::{ByteOrder, LittleEndian};
 use rand::{thread_rng, Rng};
@@ -8,7 +8,7 @@ use std::error;
 use std::time::SystemTime;
 use x25519_dalek;
 
-type Aes256Cbc = Cbc<Aes256, Pkcs7>;
+type Aes256Cbc = Cbc<Aes256, block_padding::ZeroPadding>;
 
 pub fn encrypt(
     pin: &str,
@@ -25,13 +25,11 @@ pub fn encrypt(
 
     let mut pin_buf: Vec<u8> = vec![];
     pin_buf.extend_from_slice(pin.as_bytes());
+    let now = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)?
+        .as_secs();
     let mut time_buf = [0u8; 8];
-    LittleEndian::write_u64(
-        &mut time_buf,
-        SystemTime::now()
-            .duration_since(SystemTime::UNIX_EPOCH)?
-            .as_secs(),
-    );
+    LittleEndian::write_u64(&mut time_buf, now);
     pin_buf.extend_from_slice(&time_buf);
 
     let mut iterator_buf = [0u8; 8];
@@ -60,7 +58,7 @@ pub fn encrypt(
 
 fn curve25519(input: &[u8]) -> [u8; 32] {
     let mut hasher = Sha512::new();
-    hasher.update(input);
+    hasher.update(&input[..32]);
     let result = hasher.finalize();
 
     let mut private: [u8; 32] = [0u8; 32];
