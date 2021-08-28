@@ -1,4 +1,5 @@
 use jwt_simple::prelude::*;
+use reqwest::Method;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::error;
@@ -17,16 +18,18 @@ pub struct AppConfig {
     pub uid: String,
     pub sid: String,
     pub private_base64: String,
-    pub method: String,
-    pub uri: String,
-    pub body: String,
     pub pin: String,
     pub pin_token_base64: String,
 }
 
-pub fn sign_token(cfg: AppConfig) -> Result<String, Box<dyn error::Error>> {
+pub fn sign_token(
+    method: Method,
+    uri: &str,
+    body: &str,
+    cfg: AppConfig,
+) -> Result<String, Box<dyn error::Error>> {
     let mut hasher = Sha256::new();
-    hasher.update(format!("{}{}{}", cfg.method, cfg.uri, cfg.body).as_bytes());
+    hasher.update(format!("{}{}{}", method.as_str(), uri, body).as_bytes());
     let result = hasher.finalize();
 
     let private_data = base64::decode_config(cfg.private_base64, base64::URL_SAFE_NO_PAD)?;

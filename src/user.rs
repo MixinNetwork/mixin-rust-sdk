@@ -42,7 +42,7 @@ pub fn me(cfg: authorization::AppConfig) -> Result<User, Box<dyn error::Error>> 
     }
 }
 
-pub fn pin_verify(mut cfg: authorization::AppConfig) -> Result<User, Box<dyn error::Error>> {
+pub fn pin_verify(cfg: authorization::AppConfig) -> Result<User, Box<dyn error::Error>> {
     let encrypted_pin = pin::encrypt(
         &cfg.pin,
         SystemTime::now()
@@ -54,8 +54,6 @@ pub fn pin_verify(mut cfg: authorization::AppConfig) -> Result<User, Box<dyn err
     )?;
     let mut map: HashMap<String, String> = HashMap::new();
     map.insert(String::from("pin"), encrypted_pin);
-    cfg.method = String::from("POST");
-    cfg.uri = String::from("/pin/verify");
     let res = http::request(cfg, reqwest::Method::POST, "/pin/verify", &map)?;
 
     #[derive(Debug, Serialize, Deserialize)]

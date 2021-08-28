@@ -1,5 +1,6 @@
 mod secret;
 use bot_api_rust_client::authorization;
+use reqwest::Method;
 use std::time::SystemTime;
 
 fn generate_authorization_token() -> String {
@@ -7,13 +8,10 @@ fn generate_authorization_token() -> String {
         uid: secret::APP_ID.to_string(),
         sid: secret::SESSION_ID.to_string(),
         private_base64: secret::PRIVATE_KEY.to_string(),
-        method: "GET".to_string(),
-        uri: "/me".to_string(),
-        body: "".to_string(),
         pin: "".to_string(),
         pin_token_base64: "".to_string(),
     };
-    bot_api_rust_client::authorization::sign_token(cfg).unwrap()
+    bot_api_rust_client::authorization::sign_token(Method::GET, "/me", "", cfg).unwrap()
 }
 
 fn me() {
@@ -21,9 +19,6 @@ fn me() {
         uid: secret::APP_ID.to_string(),
         sid: secret::SESSION_ID.to_string(),
         private_base64: secret::PRIVATE_KEY.to_string(),
-        method: "GET".to_string(),
-        uri: "/me".to_string(),
-        body: "".to_string(),
         pin: "".to_string(),
         pin_token_base64: "".to_string(),
     };
@@ -36,9 +31,6 @@ fn verify_pin() {
         uid: secret::APP_ID.to_string(),
         sid: secret::SESSION_ID.to_string(),
         private_base64: secret::PRIVATE_KEY.to_string(),
-        method: "POST".to_string(),
-        uri: "/pin/verify".to_string(),
-        body: "".to_string(),
         pin: secret::PIN.to_string(),
         pin_token_base64: secret::PIN_TOKEN.to_string(),
     };

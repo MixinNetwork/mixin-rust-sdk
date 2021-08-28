@@ -26,16 +26,17 @@ impl fmt::Display for Error {
 impl error::Error for Error {}
 
 pub fn request<T: Serialize + ?Sized>(
-    mut cfg: authorization::AppConfig,
+    cfg: authorization::AppConfig,
     method: Method,
     path: &str,
     json: &T,
 ) -> Result<Response, Box<dyn error::Error>> {
-    if cfg.method == "POST" {
+    let mut body = String::from("");
+    if method == "POST" {
         let j = serde_json::to_string(&json)?;
-        cfg.body = j.clone();
+        body = j.clone();
     }
-    let token = authorization::sign_token(cfg)?;
+    let token = authorization::sign_token(method.clone(), path, &body, cfg)?;
 
     Ok(request_with_token(method, path, json, &token))
 }
