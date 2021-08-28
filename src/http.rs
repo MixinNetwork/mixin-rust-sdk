@@ -2,6 +2,7 @@ use crate::authorization;
 use reqwest::{blocking::Response, header, Method};
 use serde::{Deserialize, Serialize};
 use std::{error, fmt, time::Duration};
+use uuid::Uuid;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Error {
@@ -49,6 +50,7 @@ pub fn request_with_token<T: Serialize + ?Sized>(
 ) -> Response {
     let mut headers = header::HeaderMap::new();
     headers.insert("Content-Type", "application/json".parse().unwrap());
+    headers.insert("X-Request-Id", Uuid::new_v4().to_string().parse().unwrap());
     headers.insert(
         "Authorization",
         format!("Bearer {}", token).parse().unwrap(),
