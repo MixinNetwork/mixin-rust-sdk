@@ -26,6 +26,19 @@ fn me() {
     println!("{:?}", user);
 }
 
+fn user() {
+    let cfg: authorization::AppConfig = authorization::AppConfig {
+        uid: secret::APP_ID.to_string(),
+        sid: secret::SESSION_ID.to_string(),
+        private_base64: secret::PRIVATE_KEY.to_string(),
+        pin: "".to_string(),
+        pin_token_base64: "".to_string(),
+    };
+    let user =
+        bot_api_rust_client::user::read(cfg, "e9e5b807-fa8b-455a-8dfa-b189d28310ff").unwrap();
+    println!("{:?}", user);
+}
+
 fn verify_pin() {
     let cfg: authorization::AppConfig = authorization::AppConfig {
         uid: secret::APP_ID.to_string(),
@@ -57,6 +70,7 @@ fn main() {
     //    .unwrap()
     //);
 
-    // me();
-    verify_pin();
+    me();
+    // user();
+    // verify_pin();
 }

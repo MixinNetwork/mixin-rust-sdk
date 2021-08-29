@@ -9,28 +9,72 @@ use std::time::SystemTime;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {
     user_id: String,
-    session_id: String,
-    pin_token_base64: String,
     identity_number: String,
     phone: String,
     full_name: String,
+    biography: String,
     avatar_url: String,
-    device_status: String,
+    relationship: String,
+    mute_until: String,
     created_at: String,
+    is_verified: bool,
+    is_scam: bool,
 
     #[serde(default)]
     #[serde(flatten)]
     _unknow_fields_: Option<HashMap<String, toml::Value>>,
-    // timestamp: String,
 }
 
-pub fn me(cfg: authorization::AppConfig) -> Result<User, Box<dyn error::Error>> {
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Me {
+    #[serde(flatten)]
+    user: User,
+    session_id: String,
+    pin_token_base64: String,
+    code_id: String,
+    code_url: String,
+    device_status: String,
+    has_pin: bool,
+    has_emergency_contact: bool,
+    receive_message_source: String,
+    accept_conversation_source: String,
+    accept_search_source: String,
+    fiat_currency: String,
+    transfer_notification_threshold: f64,
+    transfer_confirmation_threshold: f64,
+
+    #[serde(default)]
+    #[serde(flatten)]
+    _unknow_fields_: Option<HashMap<String, toml::Value>>,
+}
+
+pub fn read(cfg: authorization::AppConfig, id: &str) -> Result<User, Box<dyn error::Error>> {
+    let map: HashMap<String, String> = HashMap::new();
+    let mut path = String::from("/users/");
+    path.push_str(id);
+    let res = http::request(cfg, reqwest::Method::GET, &path, &map)?;
+
+    #[derive(Debug, Serialize, Deserialize)]
+    struct Body {
+        data: Option<User>,
+        error: Option<http::Error>,
+    }
+
+    let body: Body = res.json().unwrap();
+
+    match body.error {
+        Some(e) => Err(Box::new(e)),
+        None => Ok(body.data.unwrap()),
+    }
+}
+
+pub fn me(cfg: authorization::AppConfig) -> Result<Me, Box<dyn error::Error>> {
     let map: HashMap<String, String> = HashMap::new();
     let res = http::request(cfg, reqwest::Method::GET, "/me", &map)?;
 
     #[derive(Debug, Serialize, Deserialize)]
     struct Body {
-        data: Option<User>,
+        data: Option<Me>,
         error: Option<http::Error>,
     }
 
