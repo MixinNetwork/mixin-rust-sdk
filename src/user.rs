@@ -6,6 +6,12 @@ use std::collections::HashMap;
 use std::error;
 use std::time::SystemTime;
 
+pub const RELATIONSHIP_ACTION_ADD: &str = "ADD";
+pub const RELATIONSHIP_ACTION_UPDATE: &str = "UPDATE";
+pub const RELATIONSHIP_ACTION_REMOVE: &str = "REMOVE";
+pub const RELATIONSHIP_ACTION_BLOCK: &str = "BLOCK";
+pub const RELATIONSHIP_ACTION_UNBLOCK: &str = "UNBLOCK";
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct User {
     user_id: String,
@@ -68,6 +74,29 @@ pub fn read(cfg: authorization::AppConfig, id: &str) -> Result<User, Box<dyn err
     }
 }
 
+pub fn search(
+    cfg: authorization::AppConfig,
+    mixin_id: &str,
+) -> Result<User, Box<dyn error::Error>> {
+    let map: HashMap<String, String> = HashMap::new();
+    let mut path = String::from("/search/");
+    path.push_str(mixin_id);
+    let res = http::request(cfg, reqwest::Method::GET, &path, &map)?;
+
+    #[derive(Debug, Serialize, Deserialize)]
+    struct Body {
+        data: Option<User>,
+        error: Option<http::Error>,
+    }
+
+    let body: Body = res.json().unwrap();
+
+    match body.error {
+        Some(e) => Err(Box::new(e)),
+        None => Ok(body.data.unwrap()),
+    }
+}
+
 pub fn me(cfg: authorization::AppConfig) -> Result<Me, Box<dyn error::Error>> {
     let map: HashMap<String, String> = HashMap::new();
     let res = http::request(cfg, reqwest::Method::GET, "/me", &map)?;
@@ -75,6 +104,91 @@ pub fn me(cfg: authorization::AppConfig) -> Result<Me, Box<dyn error::Error>> {
     #[derive(Debug, Serialize, Deserialize)]
     struct Body {
         data: Option<Me>,
+        error: Option<http::Error>,
+    }
+
+    let body: Body = res.json().unwrap();
+
+    match body.error {
+        Some(e) => Err(Box::new(e)),
+        None => Ok(body.data.unwrap()),
+    }
+}
+
+pub fn update_me(
+    cfg: authorization::AppConfig,
+    full_name: &str,
+    avatar_base64: &str,
+) -> Result<User, Box<dyn error::Error>> {
+    let mut map: HashMap<String, String> = HashMap::new();
+    map.insert(String::from("full_name"), full_name.to_string());
+    map.insert(String::from("avatar_base64"), avatar_base64.to_string());
+    let res = http::request(cfg, reqwest::Method::POST, "/me", &map)?;
+
+    #[derive(Debug, Serialize, Deserialize)]
+    struct Body {
+        data: Option<User>,
+        error: Option<http::Error>,
+    }
+
+    let body: Body = res.json().unwrap();
+
+    match body.error {
+        Some(e) => Err(Box::new(e)),
+        None => Ok(body.data.unwrap()),
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Preference {
+    receive_message_source: String,
+    accept_conversation_source: String,
+    fiat_currency: String,
+    transfer_notification_threshold: f64,
+}
+
+pub fn update_preference(
+    cfg: authorization::AppConfig,
+    message_source: &str,
+    conversation_source: &str,
+    currency: &str,
+    threshold: f64,
+) -> Result<User, Box<dyn error::Error>> {
+    let preference: Preference = Preference {
+        receive_message_source: message_source.to_string(),
+        accept_conversation_source: conversation_source.to_string(),
+        fiat_currency: currency.to_string(),
+        transfer_notification_threshold: threshold,
+    };
+    let res = http::request(cfg, reqwest::Method::POST, "/me", &preference)?;
+
+    #[derive(Debug, Serialize, Deserialize)]
+    struct Body {
+        data: Option<User>,
+        error: Option<http::Error>,
+    }
+
+    let body: Body = res.json().unwrap();
+
+    match body.error {
+        Some(e) => Err(Box::new(e)),
+        None => Ok(body.data.unwrap()),
+    }
+}
+
+pub fn relationship(
+    cfg: authorization::AppConfig,
+    user_id: &str,
+    action: &str,
+) -> Result<User, Box<dyn error::Error>> {
+    let mut map: HashMap<String, String> = HashMap::new();
+    map.insert(String::from("user_id"), user_id.to_string());
+    map.insert(String::from("action"), action.to_string());
+    let res = http::request(cfg, reqwest::Method::POST, "/relationships", &map)?;
+
+    #[derive(Debug, Serialize, Deserialize)]
+    struct Body {
+        data: Option<User>,
         error: Option<http::Error>,
     }
 

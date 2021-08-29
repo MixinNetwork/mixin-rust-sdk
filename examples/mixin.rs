@@ -70,7 +70,7 @@ fn main() {
     //    .unwrap()
     //);
 
-    me();
+    // me();
     // user();
     // verify_pin();
 }
