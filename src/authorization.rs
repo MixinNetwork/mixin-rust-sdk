@@ -6,7 +6,7 @@ use std::error;
 use uuid::Uuid;
 
 #[derive(Serialize, Deserialize)]
-struct MyAdditionalData {
+struct CustomClaims {
     uid: String,
     sid: String,
     jti: String,
@@ -34,14 +34,14 @@ pub fn sign_token(
 
     let private_data = base64::decode_config(cfg.private_base64, base64::URL_SAFE_NO_PAD)?;
 
-    let payload = MyAdditionalData {
+    let claim = CustomClaims {
         uid: cfg.uid.to_string(),
         sid: cfg.sid.to_string(),
         jti: Uuid::new_v4().to_string(),
         sig: format!("{:x}", result),
         scp: "FULL".to_owned(),
     };
-    let claims = Claims::with_custom_claims(payload, Duration::from_hours(24 * 30 * 6));
+    let claims = Claims::with_custom_claims(claim, Duration::from_hours(24 * 30 * 6));
 
     let key_pair = Ed25519KeyPair::from_bytes(private_data.as_slice())?;
     Ok(key_pair.sign(claims)?)
