@@ -73,28 +73,11 @@ fn transfer() {
 }
 
 fn main() {
-    /*
     bot_api_rust_client::root();
     println!("token {}", generate_authorization_token());
-    println!(
-        "{}",
-        bot_api_rust_client::pin::encrypt(
-            secret::PIN,
-     LittleEndian::write_u64(
-         &mut time_buf,
-         SystemTime::now()
-             .duration_since(SystemTime::UNIX_EPOCH)?
-             .as_secs(),
-     );
-            secret::PIN_TOKEN,
-            secret::PRIVATE_KEY,
-        )
-        .unwrap()
-    );
 
     me();
     user();
     verify_pin();
-    */
     transfer();
 }
