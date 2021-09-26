@@ -3,6 +3,7 @@ use crate::http;
 use crate::pin;
 use chrono;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::error;
 use std::time::SystemTime;
 
@@ -39,6 +40,10 @@ pub struct TransferResponse {
     snapshot_hash: Option<String>,
     transaction_hash: Option<String>,
     snapshot_at: Option<chrono::DateTime<chrono::Utc>>,
+
+    #[serde(default)]
+    #[serde(flatten)]
+    _unknow_fields_: Option<HashMap<String, toml::Value>>,
 }
 
 pub fn transfer(
