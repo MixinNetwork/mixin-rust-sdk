@@ -1,6 +1,7 @@
 use crate::authorization;
 use crate::http;
 use crate::pin;
+use reqwest::Method;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::error;
@@ -54,50 +55,9 @@ pub struct Me {
     _unknow_fields_: Option<HashMap<String, toml::Value>>,
 }
 
-pub fn user(cfg: authorization::AppConfig, id: &str) -> Result<User, Box<dyn error::Error>> {
-    let map: HashMap<String, String> = HashMap::new();
-    let path = format!("/users/{}", id);
-    let res = http::request(cfg, reqwest::Method::GET, &path, &map)?;
-
-    #[derive(Debug, Serialize, Deserialize)]
-    struct Body {
-        data: Option<User>,
-        error: Option<http::Error>,
-    }
-
-    let body: Body = res.json().unwrap();
-
-    match body.error {
-        Some(e) => Err(Box::new(e)),
-        None => Ok(body.data.unwrap()),
-    }
-}
-
-pub fn search(
-    cfg: authorization::AppConfig,
-    mixin_id: &str,
-) -> Result<User, Box<dyn error::Error>> {
-    let map: HashMap<String, String> = HashMap::new();
-    let path = format!("/search/{}", mixin_id);
-    let res = http::request(cfg, reqwest::Method::GET, &path, &map)?;
-
-    #[derive(Debug, Serialize, Deserialize)]
-    struct Body {
-        data: Option<User>,
-        error: Option<http::Error>,
-    }
-
-    let body: Body = res.json().unwrap();
-
-    match body.error {
-        Some(e) => Err(Box::new(e)),
-        None => Ok(body.data.unwrap()),
-    }
-}
-
 pub fn me(cfg: authorization::AppConfig) -> Result<Me, Box<dyn error::Error>> {
     let map: HashMap<String, String> = HashMap::new();
-    let res = http::request(cfg, reqwest::Method::GET, "/me", &map)?;
+    let res = http::request(cfg, Method::GET, "/me", &map)?;
 
     #[derive(Debug, Serialize, Deserialize)]
     struct Body {
@@ -121,7 +81,83 @@ pub fn update(
     let mut map: HashMap<String, String> = HashMap::new();
     map.insert(String::from("full_name"), full_name.to_string());
     map.insert(String::from("avatar_base64"), avatar_base64.to_string());
-    let res = http::request(cfg, reqwest::Method::POST, "/me", &map)?;
+    let res = http::request(cfg, Method::POST, "/me", &map)?;
+
+    #[derive(Debug, Serialize, Deserialize)]
+    struct Body {
+        data: Option<User>,
+        error: Option<http::Error>,
+    }
+
+    let body: Body = res.json().unwrap();
+
+    match body.error {
+        Some(e) => Err(Box::new(e)),
+        None => Ok(body.data.unwrap()),
+    }
+}
+
+pub fn code(cfg: authorization::AppConfig) -> Result<User, Box<dyn error::Error>> {
+    let map: HashMap<String, String> = HashMap::new();
+    let res = http::request(cfg, Method::GET, "/me/code", &map)?;
+
+    #[derive(Debug, Serialize, Deserialize)]
+    struct Body {
+        data: Option<User>,
+        error: Option<http::Error>,
+    }
+
+    let body: Body = res.json().unwrap();
+    match body.error {
+        Some(e) => Err(Box::new(e)),
+        None => Ok(body.data.unwrap()),
+    }
+}
+
+pub fn user(cfg: authorization::AppConfig, id: &str) -> Result<User, Box<dyn error::Error>> {
+    let map: HashMap<String, String> = HashMap::new();
+    let path = format!("/users/{}", id);
+    let resp = http::request(cfg, Method::GET, &path, &map)?;
+
+    #[derive(Debug, Serialize, Deserialize)]
+    struct Body {
+        data: Option<User>,
+        error: Option<http::Error>,
+    }
+
+    let body: Body = resp.json().unwrap();
+    match body.error {
+        Some(e) => Err(Box::new(e)),
+        None => Ok(body.data.unwrap()),
+    }
+}
+
+pub fn fetch(
+    cfg: authorization::AppConfig,
+    ids: Vec<&str>,
+) -> Result<Vec<User>, Box<dyn error::Error>> {
+    let resp = http::request(cfg, Method::POST, "/users/fetch", &ids)?;
+
+    #[derive(Debug, Serialize, Deserialize)]
+    struct Body {
+        data: Option<Vec<User>>,
+        error: Option<http::Error>,
+    }
+
+    let body: Body = resp.json().unwrap();
+    match body.error {
+        Some(e) => Err(Box::new(e)),
+        None => Ok(body.data.unwrap()),
+    }
+}
+
+pub fn search(
+    cfg: authorization::AppConfig,
+    mixin_id: &str,
+) -> Result<User, Box<dyn error::Error>> {
+    let map: HashMap<String, String> = HashMap::new();
+    let path = format!("/search/{}", mixin_id);
+    let res = http::request(cfg, Method::GET, &path, &map)?;
 
     #[derive(Debug, Serialize, Deserialize)]
     struct Body {
@@ -138,7 +174,7 @@ pub fn update(
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Preference {
+struct PreferenceRequest {
     receive_message_source: String,
     accept_conversation_source: String,
     fiat_currency: String,
@@ -152,13 +188,13 @@ pub fn update_preference(
     currency: &str,
     threshold: f64,
 ) -> Result<User, Box<dyn error::Error>> {
-    let preference: Preference = Preference {
+    let preference: PreferenceRequest = PreferenceRequest {
         receive_message_source: message_source.to_string(),
         accept_conversation_source: conversation_source.to_string(),
         fiat_currency: currency.to_string(),
         transfer_notification_threshold: threshold,
     };
-    let res = http::request(cfg, reqwest::Method::POST, "/me", &preference)?;
+    let res = http::request(cfg, Method::POST, "/me", &preference)?;
 
     #[derive(Debug, Serialize, Deserialize)]
     struct Body {
@@ -182,7 +218,7 @@ pub fn relationship(
     let mut map: HashMap<String, String> = HashMap::new();
     map.insert(String::from("user_id"), user_id.to_string());
     map.insert(String::from("action"), action.to_string());
-    let res = http::request(cfg, reqwest::Method::POST, "/relationships", &map)?;
+    let res = http::request(cfg, Method::POST, "/relationships", &map)?;
 
     #[derive(Debug, Serialize, Deserialize)]
     struct Body {
@@ -210,7 +246,7 @@ pub fn pin_verify(cfg: authorization::AppConfig) -> Result<User, Box<dyn error::
     )?;
     let mut map: HashMap<String, String> = HashMap::new();
     map.insert(String::from("pin"), encrypted_pin);
-    let res = http::request(cfg, reqwest::Method::POST, "/pin/verify", &map)?;
+    let res = http::request(cfg, Method::POST, "/pin/verify", &map)?;
 
     #[derive(Debug, Serialize, Deserialize)]
     struct Body {

@@ -26,6 +26,34 @@ fn me() {
     println!("{:?}", user);
 }
 
+fn code() {
+    let cfg: authorization::AppConfig = authorization::AppConfig {
+        uid: secret::APP_ID.to_string(),
+        sid: secret::SESSION_ID.to_string(),
+        private_base64: secret::PRIVATE_KEY.to_string(),
+        pin: "".to_string(),
+        pin_token_base64: "".to_string(),
+    };
+    let user = user::code(cfg).unwrap();
+    println!("{:?}", user);
+}
+
+fn fetch() {
+    let cfg: authorization::AppConfig = authorization::AppConfig {
+        uid: secret::APP_ID.to_string(),
+        sid: secret::SESSION_ID.to_string(),
+        private_base64: secret::PRIVATE_KEY.to_string(),
+        pin: "".to_string(),
+        pin_token_base64: "".to_string(),
+    };
+
+    let mut vec = Vec::new();
+    vec.push("8dcf823d-9eb3-4da2-8734-f0aad50c0da6");
+    vec.push("1da1124a-9c97-4f2b-b332-f11f77c7604a");
+    let user = user::fetch(cfg, vec).unwrap();
+    println!("{:?}", user);
+}
+
 fn user() {
     let cfg: authorization::AppConfig = authorization::AppConfig {
         uid: secret::APP_ID.to_string(),
@@ -79,4 +107,6 @@ fn main() {
     user();
     verify_pin();
     transfer();
+    code();
+    fetch()
 }
