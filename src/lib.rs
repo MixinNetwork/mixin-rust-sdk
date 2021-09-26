@@ -4,6 +4,7 @@ use std::collections::HashMap;
 pub mod authorization;
 pub mod http;
 pub mod pin;
+pub mod transfer;
 pub mod user;
 
 #[derive(Debug, Serialize, Deserialize)]

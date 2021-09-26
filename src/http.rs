@@ -8,8 +8,9 @@ use uuid::Uuid;
 pub struct Error {
     pub status: u32,
     pub code: u32,
-    pub description: String,
 
+    #[serde(default)]
+    pub description: String,
     #[serde(default)]
     pub extra: String,
 }

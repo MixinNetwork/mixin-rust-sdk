@@ -3,28 +3,29 @@ use crate::http;
 use crate::pin;
 use chrono;
 use serde::{Deserialize, Serialize};
+use std::error;
+use std::time::SystemTime;
 
 #[derive(Debug, Serialize, Deserialize)]
-struct OpponentMultisig {
-    receivers: String,
-    threshold: u64,
+pub struct OpponentMultisig {
+    pub receivers: String,
+    pub threshold: u64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct TransferRequest {
-    asset_id: String,
-    address_id: String,
-    opponent_id: String,
-    opponent_key: String,
-    opponent_multisig: OpponentMultisig,
-    amount: String,
-    pin: String,
-    trace_id: String,
-    memo: String,
+pub struct TransferRequest {
+    pub asset_id: String,
+
+    // transfer
+    pub opponent_id: String,
+    pub amount: String,
+    pub pin: String,
+    pub trace_id: String,
+    pub memo: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct TransferResponse {
+pub struct TransferResponse {
     snapshot_id: String,
     opponent_id: String,
     asset_id: String,
@@ -35,9 +36,37 @@ struct TransferResponse {
     memo: String,
     created_at: chrono::DateTime<chrono::Utc>,
 
-    transaction_hash: Option<String>,
     snapshot_hash: Option<String>,
+    transaction_hash: Option<String>,
     snapshot_at: Option<chrono::DateTime<chrono::Utc>>,
 }
 
-//pub fn transfer(cfg: authorization::AppConfig, in: TransferRequest) {}
+pub fn transfer(
+    cfg: authorization::AppConfig,
+    mut input: TransferRequest,
+) -> Result<TransferResponse, Box<dyn error::Error>> {
+    let encrypted_pin = pin::encrypt(
+        &cfg.pin,
+        SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos() as u64,
+        &cfg.pin_token_base64,
+        &cfg.private_base64,
+    )?;
+    input.pin = encrypted_pin;
+
+    let res = http::request(cfg, reqwest::Method::POST, "/transfers", &input)?;
+
+    #[derive(Debug, Serialize, Deserialize)]
+    struct Body {
+        data: Option<TransferResponse>,
+        error: Option<http::Error>,
+    }
+
+    let body: Body = res.json().unwrap();
+    match body.error {
+        Some(e) => Err(Box::new(e)),
+        None => Ok(body.data.unwrap()),
+    }
+}
