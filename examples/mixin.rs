@@ -1,5 +1,5 @@
 mod secret;
-use bot_api_rust_client::{authorization, transfer};
+use bot_api_rust_client::{authorization, transfer, user};
 use reqwest::Method;
 use uuid::Uuid;
 
@@ -11,7 +11,7 @@ fn generate_authorization_token() -> String {
         pin: "".to_string(),
         pin_token_base64: "".to_string(),
     };
-    bot_api_rust_client::authorization::sign_token(Method::GET, "/me", "", cfg).unwrap()
+    authorization::sign_token(Method::GET, "/me", "", cfg).unwrap()
 }
 
 fn me() {
@@ -22,7 +22,7 @@ fn me() {
         pin: "".to_string(),
         pin_token_base64: "".to_string(),
     };
-    let user = bot_api_rust_client::user::me(cfg).unwrap();
+    let user = user::me(cfg).unwrap();
     println!("{:?}", user);
 }
 
@@ -34,8 +34,7 @@ fn user() {
         pin: "".to_string(),
         pin_token_base64: "".to_string(),
     };
-    let user =
-        bot_api_rust_client::user::read(cfg, "e9e5b807-fa8b-455a-8dfa-b189d28310ff").unwrap();
+    let user = user::user(cfg, "e9e5b807-fa8b-455a-8dfa-b189d28310ff").unwrap();
     println!("{:?}", user);
 }
 
@@ -47,7 +46,7 @@ fn verify_pin() {
         pin: secret::PIN.to_string(),
         pin_token_base64: secret::PIN_TOKEN.to_string(),
     };
-    let user = bot_api_rust_client::user::pin_verify(cfg).unwrap();
+    let user = user::pin_verify(cfg).unwrap();
     println!("{:?}", user);
 }
 
@@ -68,7 +67,7 @@ fn transfer() {
         trace_id: Uuid::new_v4().to_string(),
         memo: "hello from rust".to_string(),
     };
-    let transfer = bot_api_rust_client::transfer::transfer(cfg, input).unwrap();
+    let transfer = transfer::transfer(cfg, input).unwrap();
     println!("{:?}", transfer);
 }
 

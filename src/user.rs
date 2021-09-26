@@ -54,10 +54,9 @@ pub struct Me {
     _unknow_fields_: Option<HashMap<String, toml::Value>>,
 }
 
-pub fn read(cfg: authorization::AppConfig, id: &str) -> Result<User, Box<dyn error::Error>> {
+pub fn user(cfg: authorization::AppConfig, id: &str) -> Result<User, Box<dyn error::Error>> {
     let map: HashMap<String, String> = HashMap::new();
-    let mut path = String::from("/users/");
-    path.push_str(id);
+    let path = format!("/users/{}", id);
     let res = http::request(cfg, reqwest::Method::GET, &path, &map)?;
 
     #[derive(Debug, Serialize, Deserialize)]
@@ -79,8 +78,7 @@ pub fn search(
     mixin_id: &str,
 ) -> Result<User, Box<dyn error::Error>> {
     let map: HashMap<String, String> = HashMap::new();
-    let mut path = String::from("/search/");
-    path.push_str(mixin_id);
+    let path = format!("/search/{}", mixin_id);
     let res = http::request(cfg, reqwest::Method::GET, &path, &map)?;
 
     #[derive(Debug, Serialize, Deserialize)]
@@ -115,7 +113,7 @@ pub fn me(cfg: authorization::AppConfig) -> Result<Me, Box<dyn error::Error>> {
     }
 }
 
-pub fn update_me(
+pub fn update(
     cfg: authorization::AppConfig,
     full_name: &str,
     avatar_base64: &str,
