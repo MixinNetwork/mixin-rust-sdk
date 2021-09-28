@@ -234,7 +234,51 @@ pub fn relationship(
     }
 }
 
-pub fn pin_verify(cfg: authorization::AppConfig) -> Result<User, Box<dyn error::Error>> {
+pub fn update_pin(
+    cfg: authorization::AppConfig,
+    old: &str,
+    fresh: &str,
+) -> Result<Me, Box<dyn error::Error>> {
+    let old_pin = pin::encrypt(
+        old,
+        SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos() as u64,
+        &cfg.pin_token_base64,
+        &cfg.private_base64,
+    )?;
+
+    let fresh_pin = pin::encrypt(
+        fresh,
+        SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .unwrap()
+            .as_nanos() as u64,
+        &cfg.pin_token_base64,
+        &cfg.private_base64,
+    )?;
+
+    let mut map: HashMap<String, String> = HashMap::new();
+    map.insert(String::from("old_pin"), old_pin);
+    map.insert(String::from("pin"), fresh_pin);
+    let res = http::request(cfg, Method::POST, "/pin/update", &map)?;
+
+    #[derive(Debug, Serialize, Deserialize)]
+    struct Body {
+        data: Option<Me>,
+        error: Option<http::Error>,
+    }
+
+    let body: Body = res.json().unwrap();
+
+    match body.error {
+        Some(e) => Err(Box::new(e)),
+        None => Ok(body.data.unwrap()),
+    }
+}
+
+pub fn pin_verify(cfg: authorization::AppConfig) -> Result<Me, Box<dyn error::Error>> {
     let encrypted_pin = pin::encrypt(
         &cfg.pin,
         SystemTime::now()
@@ -250,7 +294,7 @@ pub fn pin_verify(cfg: authorization::AppConfig) -> Result<User, Box<dyn error::
 
     #[derive(Debug, Serialize, Deserialize)]
     struct Body {
-        data: Option<User>,
+        data: Option<Me>,
         error: Option<http::Error>,
     }
 

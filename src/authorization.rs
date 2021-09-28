@@ -14,6 +14,7 @@ struct CustomClaims {
     scp: String,
 }
 
+#[derive(Clone, Debug)]
 pub struct AppConfig {
     pub uid: String,
     pub sid: String,

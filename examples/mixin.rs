@@ -78,6 +78,18 @@ fn verify_pin() {
     println!("{:?}", user);
 }
 
+fn update_pin() {
+    let cfg: authorization::AppConfig = authorization::AppConfig {
+        uid: secret::APP_ID.to_string(),
+        sid: secret::SESSION_ID.to_string(),
+        private_base64: secret::PRIVATE_KEY.to_string(),
+        pin: secret::PIN.to_string(),
+        pin_token_base64: secret::PIN_TOKEN.to_string(),
+    };
+    let user = user::update_pin(cfg.clone(), secret::PIN, secret::PIN).unwrap();
+    println!("{:?}", user);
+}
+
 fn transfer() {
     let cfg: authorization::AppConfig = authorization::AppConfig {
         uid: secret::APP_ID.to_string(),
@@ -108,5 +120,6 @@ fn main() {
     verify_pin();
     transfer();
     code();
-    fetch()
+    fetch();
+    update_pin();
 }
