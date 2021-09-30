@@ -239,22 +239,15 @@ pub fn update_pin(
     old: &str,
     fresh: &str,
 ) -> Result<Me, Box<dyn error::Error>> {
-    let old_pin = pin::encrypt(
-        old,
-        SystemTime::now()
-            .duration_since(SystemTime::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos() as u64,
-        &cfg.pin_token_base64,
-        &cfg.private_base64,
-    )?;
+    let iterator = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos() as u64;
+    let old_pin = pin::encrypt(old, iterator, &cfg.pin_token_base64, &cfg.private_base64)?;
 
     let fresh_pin = pin::encrypt(
         fresh,
-        SystemTime::now()
-            .duration_since(SystemTime::UNIX_EPOCH)
-            .unwrap()
-            .as_nanos() as u64,
+        iterator + 1,
         &cfg.pin_token_base64,
         &cfg.private_base64,
     )?;
