@@ -1,7 +1,8 @@
+use jwt_simple::prelude::*;
 mod secret;
-use bot_api_rust_client::{authorization, transfer, user};
-use reqwest::Method;
-use uuid::Uuid;
+use bot_api_rust_client::{authorization};
+// use reqwest::Method;
+// use uuid::Uuid;
 use oauth2::url::Url;
 
 use oauth2::basic::BasicClient;
@@ -14,6 +15,8 @@ use oauth2::{
 use std::io::{BufRead, BufReader, Write};
 use std::net::TcpListener;
 use std::collections::HashMap;
+use webbrowser;
+#[allow(unused_must_use)]
 
 fn main() {
 
@@ -46,10 +49,7 @@ fn main() {
         .add_scope(Scope::new("ASSETS:READ".to_string()))
         .url();
 
-    println!(
-        "Open this URL in your browser:\n{}\n",
-        authorize_url.to_string()
-    );
+    let _ = webbrowser::open(authorize_url.to_string().as_str()); 
 
     // A very naive implementation of the redirect server.
     let listener = TcpListener::bind("127.0.0.1:8080").unwrap();
@@ -104,17 +104,21 @@ fn main() {
                 csrf_state.secret()
             );
 
+	    /*
 	    let mut payload = HashMap::new(); 
 	    payload.insert("client_id", cfg.uid.to_string());
-	    payload.insert("code", code.secret().to_string());
 	    payload.insert("client_secret", cfg.private_base64.to_string());
+	    payload.insert("code", code.secret().to_string());
+	    payload.insert("code_verifier", "".to_string());
+	    // let key_pair = Ed25519KeyPair::from_bytes(cfg.private_base64).unwrap();
+	    // payload.insert("ed25519", key_pair.to_string());
+	    // payload.insert("ed25519", "".to_string());
 	    let mut buffer = std::fs::File::create("body.json").unwrap();
 	    writeln!(buffer, "{:?}", &payload);
+	    */
 
             // Exchange the code with a token.
             let token_res = client.exchange_code(code).request(http_client);
-
-            println!("Mixin returned the following token:\n{:#?}\n", token_res);
 
             if let Ok(token) = token_res {
                 let scopes = if let Some(scopes_vec) = token.scopes() {
@@ -127,7 +131,9 @@ fn main() {
                     Vec::new()
                 };
                 println!("Mixin returned the following scopes:\n{:?}\n", scopes);
-            }
+            } else {
+		println!("Mixin returned the following token:\n{:?}\n", token_res);
+	    }
 
             // The server will terminate itself after collecting the first code.
             break;
