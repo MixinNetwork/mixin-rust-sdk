@@ -1,29 +1,20 @@
-use jwt_simple::prelude::*;
 mod secret;
 use bot_api_rust_client::{authorization};
-// use reqwest::Method;
-// use uuid::Uuid;
 use oauth2::url::Url;
-
 use oauth2::basic::BasicClient;
-
-use oauth2::reqwest::http_client;
-use oauth2::{
-    AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, RedirectUrl, Scope,
-    TokenResponse, TokenUrl,
-};
+use oauth2::{ AuthUrl, AuthorizationCode, ClientId, ClientSecret, CsrfToken, RedirectUrl, Scope, TokenUrl, };
 use std::io::{BufRead, BufReader, Write};
 use std::net::TcpListener;
 use std::collections::HashMap;
 use webbrowser;
-#[allow(unused_must_use)]
+use serde_json::Value;
 
 fn main() {
 
     let cfg: authorization::AppConfig = authorization::AppConfig {
         uid: secret::APP_ID.to_string(),
         sid: secret::SESSION_ID.to_string(),
-        private_base64: secret::PRIVATE_KEY.to_string(),
+        private_base64: secret::SECRET.to_string(),
         pin: secret::PIN.to_string(),
         pin_token_base64: secret::PIN_TOKEN.to_string(),
     };
@@ -89,36 +80,29 @@ fn main() {
                 state = CsrfToken::new(value.into_owned());
             }
 
-            let message = "Go back to your terminal :)";
+	    let mut payload = HashMap::new(); 
+	    payload.insert("client_id", cfg.uid.to_string());
+	    payload.insert("client_secret", cfg.private_base64.to_string());
+	    payload.insert("code", code.secret().to_string());
+
+	    let client2 = reqwest::blocking::Client::new();
+	    let token_res = client2.post("https://api.mixin.one/oauth/token").json(&payload).send().unwrap();
+	    let v: Value = serde_json::from_str(&token_res.text().unwrap().as_str()).unwrap();
+
+	    let access_token = format!("{}", &v["data"]["access_token"].as_str().unwrap());
+	    let scope = format!("{}", &v["data"]["scope"].as_str().unwrap());
+
+	    let message = format!("Mixin returned the following code:\n{}\nMixin returned the following state:\n{} (expected `{}`)\naccess token is: {}\nscope is: {}",
+                code.secret(), state.secret(), csrf_state.secret(), access_token, scope);
             let response = format!(
                 "HTTP/1.1 200 OK\r\ncontent-length: {}\r\n\r\n{}",
                 message.len(),
                 message
             );
             stream.write_all(response.as_bytes()).unwrap();
-
-            println!("Mixin returned the following code:\n{}\n", code.secret());
-            println!(
-                "Mixin returned the following state:\n{} (expected `{}`)\n",
-                state.secret(),
-                csrf_state.secret()
-            );
-
 	    /*
-	    let mut payload = HashMap::new(); 
-	    payload.insert("client_id", cfg.uid.to_string());
-	    payload.insert("client_secret", cfg.private_base64.to_string());
-	    payload.insert("code", code.secret().to_string());
-	    payload.insert("code_verifier", "".to_string());
-	    // let key_pair = Ed25519KeyPair::from_bytes(cfg.private_base64).unwrap();
-	    // payload.insert("ed25519", key_pair.to_string());
-	    // payload.insert("ed25519", "".to_string());
-	    let mut buffer = std::fs::File::create("body.json").unwrap();
-	    writeln!(buffer, "{:?}", &payload);
-	    */
-
             // Exchange the code with a token.
-            let token_res = client.exchange_code(code).request(http_client);
+            // let token_res = client.exchange_code(code).request(http_client);
 
             if let Ok(token) = token_res {
                 let scopes = if let Some(scopes_vec) = token.scopes() {
@@ -134,7 +118,7 @@ fn main() {
             } else {
 		println!("Mixin returned the following token:\n{:?}\n", token_res);
 	    }
-
+	    */
             // The server will terminate itself after collecting the first code.
             break;
         }
