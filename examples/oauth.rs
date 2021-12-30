@@ -100,25 +100,6 @@ fn main() {
                 message
             );
             stream.write_all(response.as_bytes()).unwrap();
-	    /*
-            // Exchange the code with a token.
-            // let token_res = client.exchange_code(code).request(http_client);
-
-            if let Ok(token) = token_res {
-                let scopes = if let Some(scopes_vec) = token.scopes() {
-                    scopes_vec
-                        .iter()
-                        .map(|comma_separated| comma_separated.split(','))
-                        .flatten()
-                        .collect::<Vec<_>>()
-                } else {
-                    Vec::new()
-                };
-                println!("Mixin returned the following scopes:\n{:?}\n", scopes);
-            } else {
-		println!("Mixin returned the following token:\n{:?}\n", token_res);
-	    }
-	    */
             // The server will terminate itself after collecting the first code.
             break;
         }
